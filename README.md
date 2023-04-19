@@ -1,6 +1,6 @@
 # PAdES
 
-Utility classes to sign pdf files width PAdES (PDF Advanced Electronic Signature) based on [iText](https://itextpdf.com) and [Apache PDFBox](https://pdfbox.apache.org/).
+Utility classes to sign pdf files width PAdES (PDF Advanced Electronic Signature) using [iText](https://itextpdf.com) or [Apache PDFBox](https://pdfbox.apache.org/) libraries.
 
 Before use carefully read the licenses of third-party libraries.
 
