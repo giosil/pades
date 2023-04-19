@@ -1,8 +1,11 @@
 package org.dew.pades;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.security.Key;
 import java.security.KeyStore;
@@ -16,6 +19,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.StampingProperties;
+
 import com.itextpdf.signatures.BouncyCastleDigest;
 import com.itextpdf.signatures.DigestAlgorithms;
 import com.itextpdf.signatures.ICrlClient;
@@ -160,5 +164,54 @@ class PAdESSigner
     signer.signDetached(digest, pks, certChain, crlList, ocspClient, tsaClient, 0, PdfSigner.CryptoStandard.CMS);
     
     return outputFile;
+  }
+  
+  public
+  OutputStream sign(InputStream sourceFile, OutputStream outputFile, String creator, String contact, String reason, String location)
+    throws Exception
+  {
+    if(!initCompleted) throw new Exception("Init not completed. Check keystore.");
+    
+    PdfReader reader = new PdfReader(sourceFile);
+    
+    StampingProperties sp = new StampingProperties();
+    sp.useAppendMode();
+    
+    PdfSigner signer = new PdfSigner(reader, outputFile, sp);
+    signer.setCertificationLevel(PdfSigner.CERTIFIED_NO_CHANGES_ALLOWED);
+    
+    IExternalSignature pks = new PrivateKeySignature(privateKey, DigestAlgorithms.SHA256, "BC");
+    
+    IExternalDigest digest = new BouncyCastleDigest();
+    
+    PdfSignatureAppearance appearance = signer.getSignatureAppearance();
+    appearance.setReason(reason);
+    appearance.setLocation(location);
+    appearance.setContact(contact);
+    appearance.setSignatureCreator(creator);
+    
+    Collection<ICrlClient> crlList = null;
+    IOcspClient ocspClient = null;
+    ITSAClient  tsaClient  = null;
+    
+    signer.setFieldName("Signature");
+    signer.signDetached(digest, pks, certChain, crlList, ocspClient, tsaClient, 0, PdfSigner.CryptoStandard.CMS);
+    
+    return outputFile;
+  }
+  
+  public
+  byte[] sign(byte[] sourceFile, String creator, String contact, String reason, String location)
+    throws Exception
+  {
+    if(!initCompleted) throw new Exception("Init not completed. Check keystore.");
+    
+    ByteArrayInputStream bais = new ByteArrayInputStream(sourceFile);
+    
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    
+    sign(bais, baos, creator, contact, reason, location);
+    
+    return baos.toByteArray();
   }
 }
