@@ -1,17 +1,26 @@
 # PAdES
 
-Utility class to sign pdf files width PAdES (PDF Advanced Electronic Signature) based on iText (https://itextpdf.com).
+Utility classes to sign pdf files width PAdES (PDF Advanced Electronic Signature) based on [iText](https://itextpdf.com) and [Apache PDFBox](https://pdfbox.apache.org/).
 
-Before user see [iText License](https://itextpdf.com/how-buy/AGPLv3-license).
+Before use carefully read the licenses of third-party libraries.
 
 The library provides the following classes:
 
-- `org.dew.pades.PAdESSigner` - PAdES Signer
+- `org.dew.pades.PAdESSignerIText` - PAdES Signer based on iText
+- `org.dew.pades.PAdESSignerBox` - PAdES Signer based on Apache PDFBox
 
-## Example
+## Examples
 
 ```java
-PAdESSigner pades = new PAdESSigner("keystore.jks", "password", "selfsigned");
+PAdESSignerIText pades = new PAdESSignerIText("keystore.jks", "password", "selfsigned");
+
+pades.sign(pdfFilePath, signedFilePath, "creator", "contact@dew.org", "reason", "location");
+
+byte[] out = pades.sign((byte[]) in, "creator", "contact@dew.org", "reason", "location");
+```
+
+```java
+PAdESSignerBox pades = new PAdESSignerBox("keystore.jks", "password", "selfsigned");
 
 pades.sign(pdfFilePath, signedFilePath, "creator", "contact@dew.org", "reason", "location");
 

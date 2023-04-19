@@ -6,7 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-import org.dew.pades.PAdESSigner;
+import org.dew.pades.PAdESSignerIText;
+import org.dew.pades.PAdESSignerBox;
 
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -33,26 +34,28 @@ public class TestPAdES extends TestCase {
   void testApp() 
     throws Exception 
   {
-    check_PAdESSigner_Keystore();
+    check_PAdESSignerIText();
+    
+    check_PAdESSignerBox();
   }
   
   public 
-  void check_PAdESSigner_Keystore() 
+  void check_PAdESSignerIText() 
     throws Exception 
   {
-    String pdfFilePath = getDesktopPath("test.pdf");
+    String pdfFilePath = getDesktopPath("test_itext.pdf");
     
     System.out.println("Check " + pdfFilePath + "...");
     File file = new File(pdfFilePath);
     if(!file.exists()) {
       System.out.println("Generate test pdf...");
-      byte[] content = generatePdf("test");
+      byte[] content = generatePdf("itext");
         
       System.out.println("Save " + pdfFilePath + "...");
       writeFile(pdfFilePath, content);
     }
     
-    String signedFilePath = getDesktopPath("test_signed.pdf");
+    String signedFilePath = getDesktopPath("test_itext_signed.pdf");
     
     System.out.println("Check " + signedFilePath + "...");
     File signedFile = new File(signedFilePath);
@@ -60,8 +63,41 @@ public class TestPAdES extends TestCase {
       signedFile.delete();
     }
     
-    System.out.println("new PAdESSigner...");
-    PAdESSigner pades = new PAdESSigner("keystore.jks", "password", "selfsigned");
+    System.out.println("new PAdESSignerIText...");
+    PAdESSignerIText pades = new PAdESSignerIText("keystore.jks", "password", "selfsigned");
+    
+    System.out.println("sign...");
+    pades.sign(pdfFilePath, signedFilePath, "creator", "contact@dew.org", "reason", "location");
+    
+    System.out.println("OK");
+  }
+  
+  public 
+  void check_PAdESSignerBox() 
+    throws Exception 
+  {
+    String pdfFilePath = getDesktopPath("test_box.pdf");
+    
+    System.out.println("Check " + pdfFilePath + "...");
+    File file = new File(pdfFilePath);
+    if(!file.exists()) {
+      System.out.println("Generate test pdf...");
+      byte[] content = generatePdf("PDFBox");
+        
+      System.out.println("Save " + pdfFilePath + "...");
+      writeFile(pdfFilePath, content);
+    }
+    
+    String signedFilePath = getDesktopPath("test_signed_box.pdf");
+    
+    System.out.println("Check " + signedFilePath + "...");
+    File signedFile = new File(signedFilePath);
+    if(!signedFile.exists()) {
+      signedFile.delete();
+    }
+    
+    System.out.println("new PAdESSignerBox...");
+    PAdESSignerBox pades = new PAdESSignerBox("keystore.jks", "password", "selfsigned");
     
     System.out.println("sign...");
     pades.sign(pdfFilePath, signedFilePath, "creator", "contact@dew.org", "reason", "location");

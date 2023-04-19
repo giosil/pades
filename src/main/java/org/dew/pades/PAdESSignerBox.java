@@ -2,8 +2,10 @@ package org.dew.pades;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -13,26 +15,26 @@ import java.security.PrivateKey;
 import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
+import java.util.Arrays;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureInterface;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
+
+import org.bouncycastle.cert.jcajce.JcaCertStore;
+import org.bouncycastle.cms.CMSProcessableByteArray;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.CMSSignedDataGenerator;
+import org.bouncycastle.cms.CMSTypedData;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import com.itextpdf.kernel.pdf.PdfReader;
-import com.itextpdf.kernel.pdf.StampingProperties;
-
-import com.itextpdf.signatures.BouncyCastleDigest;
-import com.itextpdf.signatures.DigestAlgorithms;
-import com.itextpdf.signatures.ICrlClient;
-import com.itextpdf.signatures.IExternalDigest;
-import com.itextpdf.signatures.IExternalSignature;
-import com.itextpdf.signatures.IOcspClient;
-import com.itextpdf.signatures.ITSAClient;
-import com.itextpdf.signatures.PdfSignatureAppearance;
-import com.itextpdf.signatures.PdfSigner;
-import com.itextpdf.signatures.PrivateKeySignature;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 
 public 
-class PAdESSigner
+class PAdESSignerBox implements SignatureInterface
 {
   protected Certificate   certificate;
   protected PrivateKey    privateKey;
@@ -40,13 +42,13 @@ class PAdESSigner
   
   protected boolean initCompleted;
   
-  public PAdESSigner(String keystoreFile, String password, String alias)
+  public PAdESSignerBox(String keystoreFile, String password, String alias)
       throws Exception
   {
     this(keystoreFile, password, alias, password);
   }
   
-  public PAdESSigner(String keystoreFile, String password, String alias, String passwordKey)
+  public PAdESSignerBox(String keystoreFile, String password, String alias, String passwordKey)
     throws Exception
   {
     if(keystoreFile == null || keystoreFile.length() == 0) {
@@ -100,7 +102,7 @@ class PAdESSigner
     initCompleted = certificate != null && privateKey != null;
   }
   
-  public PAdESSigner(Certificate certificate, PrivateKey privateKey, Certificate[] certChain)
+  public PAdESSignerBox(Certificate certificate, PrivateKey privateKey, Certificate[] certChain)
     throws Exception
   {
     this.certificate = certificate;
@@ -138,30 +140,20 @@ class PAdESSigner
   {
     if(!initCompleted) throw new Exception("Init not completed. Check keystore.");
     
-    PdfReader reader = new PdfReader(sourceFile);
+    PDDocument pdDocument = PDDocument.load(new File(sourceFile));
     
-    StampingProperties sp = new StampingProperties();
-    sp.useAppendMode();
+    PDSignature signature = new PDSignature();
+    signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
+    signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
+    signature.setName(creator);
+    signature.setContactInfo(contact);
+    signature.setLocation(location);
+    signature.setReason(reason);
     
-    PdfSigner signer = new PdfSigner(reader, new FileOutputStream(outputFile), sp);
-    signer.setCertificationLevel(PdfSigner.CERTIFIED_NO_CHANGES_ALLOWED);
+    pdDocument.addSignature(signature, this, new SignatureOptions());
     
-    IExternalSignature pks = new PrivateKeySignature(privateKey, DigestAlgorithms.SHA256, "BC");
-    
-    IExternalDigest digest = new BouncyCastleDigest();
-    
-    PdfSignatureAppearance appearance = signer.getSignatureAppearance();
-    appearance.setReason(reason);
-    appearance.setLocation(location);
-    appearance.setContact(contact);
-    appearance.setSignatureCreator(creator);
-    
-    Collection<ICrlClient> crlList = null;
-    IOcspClient ocspClient = null;
-    ITSAClient  tsaClient  = null;
-    
-    signer.setFieldName("Signature");
-    signer.signDetached(digest, pks, certChain, crlList, ocspClient, tsaClient, 0, PdfSigner.CryptoStandard.CMS);
+    pdDocument.saveIncremental(new FileOutputStream(outputFile));
+    pdDocument.close();
     
     return outputFile;
   }
@@ -172,30 +164,20 @@ class PAdESSigner
   {
     if(!initCompleted) throw new Exception("Init not completed. Check keystore.");
     
-    PdfReader reader = new PdfReader(sourceFile);
+    PDDocument pdDocument = PDDocument.load(sourceFile);
     
-    StampingProperties sp = new StampingProperties();
-    sp.useAppendMode();
+    PDSignature signature = new PDSignature();
+    signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
+    signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
+    signature.setName(creator);
+    signature.setContactInfo(contact);
+    signature.setLocation(location);
+    signature.setReason(reason);
     
-    PdfSigner signer = new PdfSigner(reader, outputFile, sp);
-    signer.setCertificationLevel(PdfSigner.CERTIFIED_NO_CHANGES_ALLOWED);
+    pdDocument.addSignature(signature, this, new SignatureOptions());
     
-    IExternalSignature pks = new PrivateKeySignature(privateKey, DigestAlgorithms.SHA256, "BC");
-    
-    IExternalDigest digest = new BouncyCastleDigest();
-    
-    PdfSignatureAppearance appearance = signer.getSignatureAppearance();
-    appearance.setReason(reason);
-    appearance.setLocation(location);
-    appearance.setContact(contact);
-    appearance.setSignatureCreator(creator);
-    
-    Collection<ICrlClient> crlList = null;
-    IOcspClient ocspClient = null;
-    ITSAClient  tsaClient  = null;
-    
-    signer.setFieldName("Signature");
-    signer.signDetached(digest, pks, certChain, crlList, ocspClient, tsaClient, 0, PdfSigner.CryptoStandard.CMS);
+    pdDocument.saveIncremental(outputFile);
+    pdDocument.close();
     
     return outputFile;
   }
@@ -213,5 +195,39 @@ class PAdESSigner
     sign(bais, baos, creator, contact, reason, location);
     
     return baos.toByteArray();
+  }
+  
+  // org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureInterface
+  @Override
+  public 
+  byte[] sign(InputStream is) 
+    throws IOException
+  {
+    if(is == null) return null;
+    byte[] content = null;
+    try {
+      int n;
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      byte[] buff = new byte[1024];
+      while((n = is.read(buff)) > 0) baos.write(buff, 0, n);
+      content = baos.toByteArray();
+    }
+    finally {
+      if(is != null) try{ is.close(); } catch(Exception ex) {}
+    }
+    if(content == null) content = new byte[0];
+    
+    try {
+      ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(privateKey);
+      CMSTypedData msg = new CMSProcessableByteArray(content);
+      CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
+      gen.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().setProvider("BC").build()).build(signer, (X509Certificate) certificate));
+      gen.addCertificates(new JcaCertStore(Arrays.asList(certificate)));
+      CMSSignedData sigData = gen.generate(msg, false);
+      return sigData.getEncoded();
+    }
+    catch(Exception ex) {
+      throw new IOException(ex);
+    }
   }
 }
