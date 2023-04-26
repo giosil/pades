@@ -20,8 +20,6 @@ import junit.framework.TestSuite;
 
 public class TestPAdES extends TestCase {
   
-  protected String implementation = "itext";
-  
   public TestPAdES(String testName) {
     super(testName);
   }
@@ -88,7 +86,7 @@ public class TestPAdES extends TestCase {
       writeFile(pdfFilePath, content);
     }
     
-    String signedFilePath = getDesktopPath("test_signed_box.pdf");
+    String signedFilePath = getDesktopPath("test_box_signed.pdf");
     
     System.out.println("Check " + signedFilePath + "...");
     File signedFile = new File(signedFilePath);
