@@ -53,6 +53,16 @@ public class PAdESSignerTools {
       signedFilePath = args[FILE_TO_SIGN] + ".signed";
     }
     
+    String creator  = args[CREATOR];
+    String contact  = args[CONTACT];
+    String reason   = args[REASON];
+    String location = args[LOCATION];
+    
+    if(creator  == null || creator.equals("_"))  creator  = "";
+    if(contact  == null || contact.equals("_"))  contact  = "";
+    if(reason   == null || reason.equals("_"))   reason   = "";
+    if(location == null || location.equals("_")) location = "";
+    
     String lib = null;
     if(args != null && args.length >= 6) {
       lib = args[LIBRARY];
@@ -67,7 +77,7 @@ public class PAdESSignerTools {
       try {
         PAdESSignerIText pades = new PAdESSignerIText(args[KEYSTORE], args[KEYSTORE_PASS], args[ALIAS_KEY], args[KEY_PASS]);
         
-        pades.sign(args[FILE_TO_SIGN], signedFilePath, args[CREATOR], args[CONTACT], args[REASON], args[LOCATION]);
+        pades.sign(args[FILE_TO_SIGN], signedFilePath, creator, contact, reason, location);
         
         System.out.println("end.");
       }
@@ -83,7 +93,7 @@ public class PAdESSignerTools {
       try {
         PAdESSignerBox pades = new PAdESSignerBox(args[KEYSTORE], args[KEYSTORE_PASS], args[ALIAS_KEY], args[KEY_PASS]);
         
-        pades.sign(args[FILE_TO_SIGN], signedFilePath, args[CREATOR], args[CONTACT], args[REASON], args[LOCATION]);
+        pades.sign(args[FILE_TO_SIGN], signedFilePath, creator, contact, reason, location);
         
         System.out.println("end.");
       }
