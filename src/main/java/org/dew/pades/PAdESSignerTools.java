@@ -79,7 +79,7 @@ public class PAdESSignerTools {
     location = location.replace('_', ' ');
     
     String lib = null;
-    if(args != null && args.length >= 6) {
+    if(args != null && args.length > LIBRARY) {
       lib = args[LIBRARY];
     }
     if(lib == null || lib.length() == 0) {
