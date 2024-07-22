@@ -19,6 +19,17 @@ public class PAdESSignerTools {
     
     System.out.println("PAdESSignerTools v. 1.0.0");
     System.out.println("-------------------------");
+    
+    if(args == null || args.length == 0) {
+      System.out.println("No arguments");
+    }
+    else {
+      System.out.println(args.length + " arguments");
+      System.out.println("File to sign: " + args[0]);
+      if(args.length > 1) {
+        System.out.println("Keystore: " + args[1]);
+      }
+    }
     if(args == null || args.length < LOCATION + 1) {
       System.out.println("Usage:");
       System.out.println("------\n");
@@ -62,6 +73,10 @@ public class PAdESSignerTools {
     if(contact  == null || contact.equals("_"))  contact  = "";
     if(reason   == null || reason.equals("_"))   reason   = "";
     if(location == null || location.equals("_")) location = "";
+    
+    creator  = creator.replace('_', ' ');
+    reason   = reason.replace('_', ' ');
+    location = location.replace('_', ' ');
     
     String lib = null;
     if(args != null && args.length >= 6) {
