@@ -18,7 +18,7 @@ public class PAdESSignerTools {
   public static void main(String[] args) {
     
     System.out.println("PAdESSignerTools v. 1.0.0");
-    System.out.println("------------------------");
+    System.out.println("-------------------------");
     if(args == null || args.length < LOCATION + 1) {
       System.out.println("Usage:");
       System.out.println("------\n");
